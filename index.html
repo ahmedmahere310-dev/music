@@ -1,39 +1,606 @@
-<DOCTYPE! html>
-  
-    <head>
-      <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-      <title>LUGX Store</title>
-      <link rel="stylesheet" href="style.css">
-    </head>
-    <body>
-      <!----HEADER---->
-<div class="header">
-  <img class="logo" src="logo.png"/>
-  <div class="headerlinks">
-    <a href="#">Home</a>
-    <a href="#">our shop</a>
-    <a href="">contant</a>
-    <button> sign in</button>
-  </div>
-  </div>
-  
-  <!---landing page---->
-  <div class="landing-page">
-    <spam>Welcometo lugx!</spam>
-    <h1>Best gaming site ever!</h1>
-    <p>
-      LUGX Gaming is free Bootstrap 5 HTML CSS website template for your gaming websites. You can download and use this layout for commercial purposes. Please tell your friends about TemplateMo.
-    </p>
-    <div class="Bar">
-      <input type="text">
-      <button>SEARCH</button>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محطة الموسيقى - الإصدار الاحترافي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap');
+        
+        :root {
+            --brand-green: #22c55e;
+            --dark-bg: #000000;
+            --surface: #121212;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--dark-bg);
+            color: #ffffff;
+            overflow: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .glass {
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-item.active {
+            color: var(--brand-green);
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .scroll-hide::-webkit-scrollbar { width: 5px; }
+        .scroll-hide::-webkit-scrollbar-thumb { background: #22c55e; border-radius: 10px; }
+
+        .song-card {
+            background: #111;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+        .song-card:active { transform: scale(0.95); }
+        .song-card.selected {
+            border-color: var(--brand-green);
+            background: #1a1a1a;
+        }
+
+        .selection-mode .song-card:hover { transform: scale(0.98); }
+        
+        .checkbox-custom {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #444;
+            border-radius: 6px;
+            display: none;
+            background: rgba(0,0,0,0.5);
+        }
+        .selection-mode .checkbox-custom { display: flex; }
+        .selected .checkbox-custom {
+            background: var(--brand-green);
+            border-color: var(--brand-green);
+        }
+
+        .action-menu {
+            transform-origin: top left;
+            animation: scaleIn 0.2s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .accent-green { accent-color: var(--brand-green); }
+        
+        /* تحسين مظهر البحث */
+        #search-bar:focus {
+            width: 320px;
+            background: #27272a;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col">
+
+    <!-- شريط التحديد العلوي -->
+    <div id="selection-toolbar" class="hidden h-16 bg-green-600 text-black px-6 flex items-center justify-between z-[110] shadow-2xl">
+        <div class="flex items-center gap-4">
+            <button onclick="exitSelectionMode()" class="w-10 h-10 flex items-center justify-center hover:bg-green-700 rounded-full transition">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <span id="selection-count" class="font-bold text-lg">تم تحديد 0</span>
+        </div>
+        <div class="relative">
+            <button onclick="toggleActionMenu()" class="w-10 h-10 flex items-center justify-center hover:bg-green-700 rounded-full transition">
+                <i class="fas fa-ellipsis-v text-xl"></i>
+            </button>
+            <div id="action-menu" class="hidden absolute left-0 top-12 w-56 bg-[#181818] text-white rounded-xl shadow-2xl border border-white/10 py-2 z-[120] action-menu">
+                <button onclick="openMultiPlaylistModal()" class="w-full text-right px-4 py-3 hover:bg-green-500 hover:text-black flex items-center gap-3 transition">
+                    <i class="fas fa-plus"></i> إضافة لقائمة تشغيل
+                </button>
+                <button id="remove-from-playlist-btn" onclick="removeSelectedFromCurrentPlaylist()" class="hidden w-full text-right px-4 py-3 hover:bg-yellow-500 hover:text-black flex items-center gap-3 transition">
+                    <i class="fas fa-minus-circle"></i> إزالة من هذه القائمة
+                </button>
+                <div class="h-[1px] bg-white/10 my-1"></div>
+                <button onclick="deleteSelectedSongs()" class="w-full text-right px-4 py-3 hover:bg-red-600 flex items-center gap-3 transition text-red-400 hover:text-white">
+                    <i class="fas fa-trash"></i> حذف نهائي من الجهاز
+                </button>
+            </div>
+        </div>
     </div>
-    
-  <div>
-    <img src="1banner-image.jpg" />
-  </div>
-  </div>
-    </body>
-    
+
+    <div class="flex flex-1 overflow-hidden">
+        <!-- القائمة الجانبية -->
+        <aside class="w-64 glass flex flex-col z-40">
+            <div class="p-8">
+                <h1 class="text-2xl font-black text-green-500 flex items-center gap-3">
+                    <i class="fas fa-bolt text-3xl"></i>
+                    MUSIC
+                </h1>
+            </div>
+
+            <nav class="flex-1 px-4 space-y-1 overflow-y-auto scroll-hide">
+                <button onclick="switchTab('all')" id="tab-all" class="sidebar-item active w-full text-right p-3 rounded-md flex items-center gap-3 font-bold transition">
+                    <i class="fas fa-home"></i> المكتبة
+                </button>
+                <button onclick="switchTab('artists')" id="tab-artists" class="sidebar-item w-full text-right p-3 rounded-md flex items-center gap-3 text-gray-400 font-bold transition">
+                    <i class="fas fa-microphone"></i> الفنانين
+                </button>
+                
+                <div class="pt-8">
+                    <div class="flex items-center justify-between text-gray-500 mb-4 px-2">
+                        <span class="text-[11px] font-black uppercase tracking-widest">القوائم</span>
+                        <button onclick="createNewPlaylist()" class="hover:text-green-500 transition"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <div id="playlist-list" class="space-y-1"></div>
+                </div>
+            </nav>
+
+            <div class="p-6">
+                <label class="block w-full text-center border-2 border-dashed border-gray-700 hover:border-green-500 text-gray-500 hover:text-green-500 font-bold py-3 rounded-xl cursor-pointer transition">
+                    <i class="fas fa-plus-circle ml-2"></i> إضافة ملفات
+                    <input type="file" id="file-input" multiple accept="audio/*" class="hidden">
+                </label>
+            </div>
+        </aside>
+
+        <!-- المحتوى الرئيسي -->
+        <main class="flex-1 flex flex-col bg-black relative">
+            <header class="p-6 flex justify-between items-center bg-gradient-to-b from-zinc-900 to-black z-30">
+                <h2 id="view-title" class="text-4xl font-black">المكتبة</h2>
+                <div class="relative group flex items-center">
+                    <input type="text" id="search-bar" placeholder="ابحث عن أغنية أو فنان..." 
+                           class="bg-zinc-800 border-none rounded-full pr-12 pl-6 py-3 focus:ring-2 focus:ring-green-500 w-64 text-sm transition-all outline-none">
+                    <i class="fas fa-search absolute right-5 text-gray-500 group-focus-within:text-green-500 transition-colors"></i>
+                </div>
+            </header>
+
+            <div id="main-content" class="flex-1 overflow-y-auto p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 scroll-hide pb-32"></div>
+        </main>
+    </div>
+
+    <!-- المشغل -->
+    <footer class="h-24 bg-black border-t border-white/5 px-6 flex items-center justify-between z-50">
+        <div class="flex items-center gap-4 w-1/3">
+            <div id="current-art" class="w-14 h-14 bg-zinc-800 rounded-md shadow-lg flex items-center justify-center bg-cover bg-center">
+                <i class="fas fa-music text-gray-600"></i>
+            </div>
+            <div class="overflow-hidden">
+                <h4 id="current-title" class="font-bold truncate text-sm">اختر أغنية</h4>
+                <p id="current-artist" class="text-xs text-gray-500 truncate">فنان غير معروف</p>
+            </div>
+        </div>
+
+        <div class="flex flex-col items-center gap-2 w-1/3">
+            <div class="flex items-center gap-8">
+                <button onclick="prevSong()" class="text-gray-400 hover:text-white transition"><i class="fas fa-step-backward text-xl"></i></button>
+                <button id="play-pause-btn" onclick="togglePlay()" class="w-10 h-10 bg-green-500 text-black rounded-full flex items-center justify-center hover:scale-105 transition">
+                    <i class="fas fa-play ml-1"></i>
+                </button>
+                <button onclick="nextSong()" class="text-gray-400 hover:text-white transition"><i class="fas fa-step-forward text-xl"></i></button>
+            </div>
+            <div class="flex items-center gap-3 w-full">
+                <span id="time-current" class="text-[10px] text-gray-500 w-10">0:00</span>
+                <input type="range" id="seek-slider" value="0" step="0.1" class="accent-green flex-1 h-1 cursor-pointer">
+                <span id="time-total" class="text-[10px] text-gray-500 w-10">0:00</span>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-5 w-1/3">
+            <i class="fas fa-volume-up text-gray-500"></i>
+            <input type="range" id="volume-slider" value="80" class="w-24 h-1 accent-green cursor-pointer">
+        </div>
+    </footer>
+
+    <!-- مودال القوائم -->
+    <div id="playlist-modal" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[200] p-4">
+        <div class="bg-zinc-900 p-8 rounded-3xl w-full max-w-sm border border-white/10">
+            <h3 class="text-xl font-black mb-6 text-center">إضافة إلى قائمة</h3>
+            <div id="modal-playlist-list" class="space-y-2 mb-6 max-h-80 overflow-y-auto scroll-hide"></div>
+            <button onclick="closeModal()" class="w-full py-3 text-gray-400 hover:text-white transition font-bold">إلغاء</button>
+        </div>
+    </div>
+
+    <script>
+        let db;
+        const DB_NAME = "MusicVaultDB";
+        const STORE_SONGS = "songs";
+        const STORE_PLAYLISTS = "playlists";
+
+        let songs = [];
+        let playlists = [];
+        let filteredSongs = null; // للمساعدة في البحث
+        let currentView = 'all';
+        let currentFilter = null;
+        let audio = new Audio();
+        let queue = [];
+        let currentIdx = -1;
+
+        let isSelectionMode = false;
+        let selectedIds = new Set();
+        let longPressTimer;
+
+        async function init() {
+            db = await initDB();
+            await loadData();
+            renderPlaylists();
+            renderContent();
+            setupEventListeners();
+            setupMediaSession();
+        }
+
+        function initDB() {
+            return new Promise((resolve) => {
+                const req = indexedDB.open(DB_NAME, 1);
+                req.onupgradeneeded = (e) => {
+                    const d = e.target.result;
+                    if (!d.objectStoreNames.contains(STORE_SONGS)) d.createObjectStore(STORE_SONGS, { keyPath: "id", autoIncrement: true });
+                    if (!d.objectStoreNames.contains(STORE_PLAYLISTS)) d.createObjectStore(STORE_PLAYLISTS, { keyPath: "id", autoIncrement: true });
+                };
+                req.onsuccess = (e) => resolve(e.target.result);
+            });
+        }
+
+        async function loadData() {
+            const tx = db.transaction([STORE_SONGS, STORE_PLAYLISTS], "readonly");
+            songs = await new Promise(r => tx.objectStore(STORE_SONGS).getAll().onsuccess = e => r(e.target.result));
+            playlists = await new Promise(r => tx.objectStore(STORE_PLAYLISTS).getAll().onsuccess = e => r(e.target.result));
+            if (!playlists.length) {
+                const id = await addToStore(STORE_PLAYLISTS, { name: "المفضلة", songIds: [] });
+                playlists = [{ id, name: "المفضلة", songIds: [] }];
+            }
+        }
+
+        function addToStore(store, data) {
+            return new Promise(r => db.transaction(store, "readwrite").objectStore(store).add(data).onsuccess = e => r(e.target.result));
+        }
+
+        function updateStore(store, data) {
+            return new Promise(r => db.transaction(store, "readwrite").objectStore(store).put(data).onsuccess = () => r());
+        }
+
+        function deleteFromStore(store, id) {
+            return new Promise(r => db.transaction(store, "readwrite").objectStore(store).delete(id).onsuccess = () => r());
+        }
+
+        function renderContent() {
+            const container = document.getElementById('main-content');
+            container.innerHTML = '';
+            
+            let list = [];
+            
+            // إذا كان هناك بحث نشط، نستخدم القائمة المفلترة
+            if (filteredSongs !== null) {
+                list = filteredSongs;
+            } else {
+                if (currentView === 'all') list = songs;
+                else if (currentView === 'artists') return renderArtists();
+                else if (currentView === 'artist-detail') list = songs.filter(s => s.artist === currentFilter);
+                else if (currentView === 'playlist-detail') {
+                    const p = playlists.find(x => x.id == currentFilter);
+                    list = songs.filter(s => p.songIds.includes(s.id));
+                }
+            }
+
+            if (isSelectionMode) document.body.classList.add('selection-mode');
+            else document.body.classList.remove('selection-mode');
+
+            if (list.length === 0) {
+                container.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center py-20 text-gray-500 italic">لا توجد نتائج هنا...</div>`;
+                return;
+            }
+
+            list.forEach(song => {
+                const card = document.createElement('div');
+                card.className = `song-card group p-4 rounded-xl cursor-pointer relative ${selectedIds.has(song.id) ? 'selected' : ''}`;
+                card.dataset.id = song.id;
+
+                card.onmousedown = (e) => startLongPress(e, song);
+                card.ontouchstart = (e) => startLongPress(e, song);
+                card.onmouseup = () => clearLongPress();
+                card.ontouchend = () => clearLongPress();
+                card.onclick = (e) => handleSongClick(e, song, list);
+
+                const art = song.cover ? `style="background-image: url(${song.cover})"` : '';
+                card.innerHTML = `
+                    <div class="aspect-square bg-zinc-800 rounded-lg mb-4 flex items-center justify-center relative overflow-hidden bg-cover bg-center shadow-lg" ${art}>
+                        ${!song.cover ? '<i class="fas fa-music text-2xl text-zinc-700"></i>' : ''}
+                        <div class="checkbox-custom absolute top-2 right-2 z-20 items-center justify-center">
+                            <i class="fas fa-check text-[10px] text-white"></i>
+                        </div>
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <i class="fas fa-play text-white text-2xl"></i>
+                        </div>
+                    </div>
+                    <h3 class="font-bold truncate text-sm mb-1">${song.title}</h3>
+                    <p class="text-[11px] text-gray-500 truncate">${song.artist}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderArtists() {
+            const container = document.getElementById('main-content');
+            const artists = {};
+            songs.forEach(s => {
+                if (!artists[s.artist]) artists[s.artist] = { count: 0, cover: s.cover };
+                artists[s.artist].count++;
+            });
+
+            Object.keys(artists).forEach(name => {
+                const data = artists[name];
+                const card = document.createElement('div');
+                card.className = "song-card p-4 rounded-xl cursor-pointer text-center group";
+                card.onclick = () => switchTab('artist-detail', name);
+                const art = data.cover ? `style="background-image: url(${data.cover})"` : '';
+                card.innerHTML = `
+                    <div class="aspect-square bg-zinc-800 rounded-full mb-4 mx-auto w-4/5 flex items-center justify-center overflow-hidden bg-cover bg-center border-2 border-transparent group-hover:border-green-500 transition-all shadow-xl" ${art}>
+                        ${!data.cover ? '<i class="fas fa-user text-2xl text-zinc-700"></i>' : ''}
+                    </div>
+                    <h3 class="font-bold truncate text-sm">${name}</h3>
+                    <p class="text-[10px] text-gray-500 mt-1 uppercase tracking-wider">${data.count} أغنية</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderPlaylists() {
+            const list = document.getElementById('playlist-list');
+            list.innerHTML = '';
+            playlists.forEach(p => {
+                const btn = document.createElement('button');
+                btn.className = `w-full text-right p-2 px-3 rounded text-xs transition flex items-center justify-between group ${currentView === 'playlist-detail' && currentFilter == p.id ? 'text-green-500 bg-zinc-900' : 'text-gray-400 hover:text-white'}`;
+                btn.onclick = () => switchTab('playlist-detail', p.id);
+                btn.innerHTML = `<span><i class="fas fa-list-ul ml-2 opacity-30"></i> ${p.name}</span>`;
+                list.appendChild(btn);
+            });
+        }
+
+        // منطق التحديد المطول
+        function startLongPress(e, song) {
+            if (isSelectionMode) return;
+            longPressTimer = setTimeout(() => { enterSelectionMode(song.id); }, 600);
+        }
+
+        function clearLongPress() { clearTimeout(longPressTimer); }
+
+        function enterSelectionMode(firstId) {
+            isSelectionMode = true;
+            selectedIds.add(firstId);
+            document.getElementById('selection-toolbar').classList.remove('hidden');
+            document.getElementById('remove-from-playlist-btn').classList.toggle('hidden', currentView !== 'playlist-detail');
+            updateSelectionUI();
+            renderContent();
+        }
+
+        function exitSelectionMode() {
+            isSelectionMode = false;
+            selectedIds.clear();
+            document.getElementById('selection-toolbar').classList.add('hidden');
+            document.getElementById('action-menu').classList.add('hidden');
+            renderContent();
+        }
+
+        function handleSongClick(e, song, context) {
+            if (isSelectionMode) {
+                if (selectedIds.has(song.id)) selectedIds.delete(song.id);
+                else selectedIds.add(song.id);
+                if (selectedIds.size === 0) exitSelectionMode();
+                else updateSelectionUI();
+                renderContent();
+            } else {
+                playSong(song, context);
+            }
+        }
+
+        function updateSelectionUI() { document.getElementById('selection-count').innerText = `تم تحديد ${selectedIds.size}`; }
+        function toggleActionMenu() { document.getElementById('action-menu').classList.toggle('hidden'); }
+
+        async function deleteSelectedSongs() {
+            if (!confirm("هل أنت متأكد من حذف الأغاني المحددة نهائياً؟")) return;
+            for (const id of selectedIds) {
+                await deleteFromStore(STORE_SONGS, id);
+                playlists.forEach(async p => {
+                    if (p.songIds.includes(id)) {
+                        p.songIds = p.songIds.filter(sid => sid !== id);
+                        await updateStore(STORE_PLAYLISTS, p);
+                    }
+                });
+            }
+            await loadData();
+            exitSelectionMode();
+            renderPlaylists();
+            renderContent();
+        }
+
+        async function removeSelectedFromCurrentPlaylist() {
+            if (currentView !== 'playlist-detail') return;
+            const p = playlists.find(x => x.id == currentFilter);
+            p.songIds = p.songIds.filter(id => !selectedIds.has(id));
+            await updateStore(STORE_PLAYLISTS, p);
+            exitSelectionMode();
+            renderContent();
+        }
+
+        function openMultiPlaylistModal() {
+            const modal = document.getElementById('playlist-modal');
+            const list = document.getElementById('modal-playlist-list');
+            list.innerHTML = '';
+            playlists.forEach(p => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-right p-4 bg-zinc-800 hover:bg-green-600 hover:text-black rounded-xl transition font-bold mb-2";
+                btn.onclick = async () => {
+                    selectedIds.forEach(id => { if (!p.songIds.includes(id)) p.songIds.push(id); });
+                    await updateStore(STORE_PLAYLISTS, p);
+                    closeModal();
+                    exitSelectionMode();
+                };
+                btn.innerText = p.name;
+                list.appendChild(btn);
+            });
+            modal.classList.replace('hidden', 'flex');
+        }
+
+        function playSong(song, context) {
+            queue = [...context];
+            currentIdx = queue.findIndex(s => s.id === song.id);
+            audio.src = URL.createObjectURL(song.blob);
+            audio.play();
+            updatePlayerUI(song);
+            updateMediaSession(song);
+        }
+
+        function updatePlayerUI(song) {
+            document.getElementById('play-pause-btn').innerHTML = '<i class="fas fa-pause"></i>';
+            document.getElementById('current-title').innerText = song.title;
+            document.getElementById('current-artist').innerText = song.artist;
+            const art = document.getElementById('current-art');
+            if (song.cover) { art.style.backgroundImage = `url(${song.cover})`; art.innerHTML = ''; } 
+            else { art.style.backgroundImage = 'none'; art.innerHTML = '<i class="fas fa-music text-gray-600"></i>'; }
+        }
+
+        function togglePlay() {
+            if (audio.paused) {
+                if (!audio.src && songs.length) playSong(songs[0], songs);
+                else audio.play();
+                document.getElementById('play-pause-btn').innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                audio.pause();
+                document.getElementById('play-pause-btn').innerHTML = '<i class="fas fa-play ml-1"></i>';
+            }
+        }
+
+        function nextSong() { if (currentIdx < queue.length - 1) playSong(queue[currentIdx + 1], queue); }
+        function prevSong() { if (currentIdx > 0) playSong(queue[currentIdx - 1], queue); }
+
+        function setupMediaSession() {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.setActionHandler('play', () => togglePlay());
+                navigator.mediaSession.setActionHandler('pause', () => togglePlay());
+                navigator.mediaSession.setActionHandler('nexttrack', () => nextSong());
+                navigator.mediaSession.setActionHandler('previoustrack', () => prevSong());
+            }
+        }
+
+        function updateMediaSession(song) {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: song.title,
+                    artist: song.artist,
+                    artwork: song.cover ? [{ src: song.cover, sizes: '512x512', type: 'image/png' }] : []
+                });
+            }
+        }
+
+        function switchTab(tab, filter = null) {
+            currentView = tab; currentFilter = filter;
+            filteredSongs = null; // مسح البحث عند تغيير التبويب
+            document.getElementById('search-bar').value = '';
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            const active = document.getElementById(`tab-${tab}`);
+            if (active) active.classList.add('active');
+            
+            let titleText = "المكتبة";
+            if (tab === 'artists') titleText = "الفنانين";
+            else if (tab === 'artist-detail') titleText = filter;
+            else if (tab === 'playlist-detail') {
+                const p = playlists.find(x => x.id == filter);
+                titleText = p ? p.name : "قائمة تشغيل";
+            }
+            document.getElementById('view-title').innerText = titleText;
+            
+            exitSelectionMode();
+            renderContent();
+        }
+
+        async function createNewPlaylist() {
+            const n = prompt("اسم القائمة الجديدة:");
+            if (n) {
+                const id = await addToStore(STORE_PLAYLISTS, { name: n, songIds: [] });
+                playlists.push({ id, name: n, songIds: [] });
+                renderPlaylists();
+            }
+        }
+
+        function closeModal() { document.getElementById('playlist-modal').classList.replace('flex', 'hidden'); }
+
+        async function handleFiles(files) {
+            for (const f of files) {
+                const isDuplicate = songs.some(s => s.fileName === f.name && s.fileSize === f.size);
+                if (isDuplicate) continue;
+
+                const meta = await getMeta(f);
+                const s = { 
+                    title: meta.title || f.name.split('.')[0], 
+                    artist: meta.artist || "فنان غير معروف", 
+                    cover: meta.cover, 
+                    blob: f,
+                    fileName: f.name,
+                    fileSize: f.size
+                };
+                const id = await addToStore(STORE_SONGS, s);
+                s.id = id; 
+                songs.push(s);
+            }
+            renderContent();
+        }
+
+        function getMeta(f) {
+            return new Promise(r => jsmediatags.read(f, {
+                onSuccess: t => {
+                    let c = null;
+                    if (t.tags.picture) {
+                        const { data, format } = t.tags.picture;
+                        let b = ""; for (let i = 0; i < data.length; i++) b += String.fromCharCode(data[i]);
+                        c = `data:${format};base64,${btoa(b)}`;
+                    }
+                    r({ title: t.tags.title, artist: t.tags.artist, cover: c });
+                },
+                onError: () => r({})
+            }));
+        }
+
+        function setupEventListeners() {
+            document.getElementById('file-input').onchange = e => handleFiles(e.target.files);
+            const seek = document.getElementById('seek-slider');
+            audio.ontimeupdate = () => {
+                seek.value = (audio.currentTime / audio.duration) * 100 || 0;
+                document.getElementById('time-current').innerText = fmt(audio.currentTime);
+                document.getElementById('time-total').innerText = fmt(audio.duration);
+            };
+            seek.oninput = () => audio.currentTime = (seek.value / 100) * audio.duration;
+            document.getElementById('volume-slider').oninput = e => audio.volume = e.target.value / 100;
+            
+            // إصلاح نظام البحث
+            const searchBar = document.getElementById('search-bar');
+            searchBar.oninput = (e) => {
+                const v = e.target.value.toLowerCase().trim();
+                if (v === '') {
+                    filteredSongs = null;
+                } else {
+                    filteredSongs = songs.filter(s => 
+                        s.title.toLowerCase().includes(v) || 
+                        s.artist.toLowerCase().includes(v)
+                    );
+                }
+                renderContent();
+            };
+
+            audio.onended = () => nextSong();
+        }
+
+        function fmt(s) { 
+            if (isNaN(s)) return "0:00";
+            const m = Math.floor(s/60), r = Math.floor(s%60); 
+            return `${m}:${r<10?'0':''}${r}`; 
+        }
+
+        init();
+    </script>
+</body>
+</html>

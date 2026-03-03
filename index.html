@@ -602,6 +602,53 @@
 
         init();
     </script>
-    <script type="module"./src="script.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+    // إعداداتك اللي في الملف المرفق بدون أي تغيير
+    const remoteFirebaseConfig = {
+        apiKey: "AIzaSyD8h9lpeAexv9JxIoP65ZZw-Qd0Z48q6ak",
+        authDomain: "dark-54a72.firebaseapp.com",
+        databaseURL: "https://dark-54a72-default-rtdb.firebaseio.com",
+        projectId: "dark-54a72",
+        storageBucket: "dark-54a72.firebasestorage.app",
+        messagingSenderId: "775459781067",
+        appId: "1:775459781067:web:68326c7937cc77ac6bde4e"
+    };
+    
+    // تشغيل Firebase بذكاء عشان ميعملش تعارض مع أي كود تاني
+    if (!firebase.apps.length) {
+        firebase.initializeApp(remoteFirebaseConfig);
+    }
+    const remoteDB = firebase.database();
+    
+    // استلام الأوامر من الريموت وتشغيل الفانكشنز بتاعتك الأصلية
+    remoteDB.ref('remote/command').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data || !data.timestamp) return;
+        
+        // التأكد إن الأمر جديد (حصل في آخر 5 ثواني مثلاً) عشان ميتكررش مع كل ريفريش
+        const now = Date.now();
+        if (now - data.timestamp > 5000) return;
+        
+        console.log("استلمت أمر من الريموت:", data.type);
+        
+        // هنا بننادي على الفانكشنز اللي إنت كاتبها في كودك الأصلي بالملي
+        if (data.type === 'toggle') togglePlay();
+        if (data.type === 'next') nextSong();
+        if (data.type === 'prev') prevSong();
+    });
+    
+    // التحكم في الصوت باستخدام متغير audio اللي إنت معرفه
+    remoteDB.ref('remote/volume').on('value', (snapshot) => {
+        const val = snapshot.val();
+        if (val !== null && typeof audio !== 'undefined') {
+            audio.volume = val / 100;
+            const volSlider = document.getElementById('volume-slider');
+            if (volSlider) volSlider.value = val;
+        }
+    });
+</script>
 </body>
 </html>
